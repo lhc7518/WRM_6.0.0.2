@@ -282,7 +282,7 @@ scwin.getFunction = function(_funcStr, _scopeId) {
 scwin.getCallBackFunction = function(callbackFnStr) {
 	if (!$c.util.isEmpty(callbackFnStr)) {
 		let func;
-		const funcManager = $c.win.getCbFunctionManager()
+		const funcManager = $c.win.getCbFunctionManager();
 		if (callbackFnStr.indexOf("__close_callback_Func__") > -1) {
 			func = funcManager["cbFuncSave"][callbackFnStr];
 			delete funcManager["cbFuncSave"][callbackFnStr];

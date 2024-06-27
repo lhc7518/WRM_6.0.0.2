@@ -118,53 +118,8 @@ scwin.settingBox_handlerEvent = function(e) {
 						</xf:group>
 					</xf:group>
 				</xf:group>
-				<!-- <xf:group class="chat_wrap" id="" style="">
-					<xf:group class="chat_close" id="">
-						<xf:trigger class="btn_close" ev:onclick="scwin.btn_chatClose_onclick" id="btn_chatClose" style="" type="button">
-							<xf:label></xf:label>
-						</xf:trigger>
-					</xf:group>
-					<xf:group class="chat_contents" id="" style="">
-						<xf:group class="chat_list" id="">
-							<w2:textbox class="date" escape="false" id="chat_date" label="01. 25 &lt;span&gt;(목)&lt;/span&gt;" style=""></w2:textbox>
-						</xf:group>
-						<w2:generator class="chat_list" id="gen_chat" style="">
-							<xf:group class="grp_message user" id="grp_userMsg" style="">
-								<w2:textbox class="bubble" id="user_chat" label="" style=""></w2:textbox>
-								<w2:textbox class="time" id="user_time" label="" style=""></w2:textbox>
-							</xf:group>
-							<xf:group class="grp_message bot" id="grp_botMsg" style="">
-								<w2:textbox class="title" id="bot_title" label="WebSquare" style=""></w2:textbox>
-								<w2:textbox class="bubble" id="bot_msg1" label="" style=""></w2:textbox>
-								<w2:textbox class="bubble" id="bot_msg2" label="" style="" escape="false"></w2:textbox>
-								<w2:textbox class="time" id="" label="" style=""></w2:textbox>
-								<xf:group class="bubble loading" id="bot_pen" style="">
-									<xf:group class="dot" id="" style=""></xf:group>
-									<xf:group class="dot" id="" style=""></xf:group>
-									<xf:group class="dot" id="" style=""></xf:group>
-								</xf:group>
-							</xf:group>
-						</w2:generator>
-					</xf:group>
-					<xf:group class="chat_footer" id="">
-						<xf:group class="chat_input_group" id="">
-							<xf:group class="chat_input" id="">
-								<xf:textarea ev:onkeydown="scwin.txt_chat_onkeydown" id="txt_chat" placeholder="내용을 입력하세요." style=""
-									title="내용을 입력하세요.">
-								</xf:textarea>
-								<xf:trigger class="btn_file" id="" style="" type="button">
-									<xf:label></xf:label>
-								</xf:trigger>
-							</xf:group>
-							<xf:trigger class="btn_send" ev:onclick="scwin.btn_chat_onclick" id="btn_chat" style="" title="전송"
-								type="button">
-								<xf:label></xf:label>
-							</xf:trigger>
-						</xf:group>
-					</xf:group>
-				</xf:group> -->
-			<w2:wframe style="" id="wfm_wtalk" class="" src="/cm/xml/wtalk.xml"></w2:wframe></xf:group>
-			
+				<w2:wframe style="" id="wfm_wtalk" class="" src="/cm/xml/wtalk.xml"></w2:wframe>
+			</xf:group>			
 			<w2:wframe style="" id="wfm_side" class="side" scope="true" src="../../cm/xml/side.xml"></w2:wframe>
 			<w2:wframe style="" id="wfm_footer" scope="true" src="../../cm/xml/footer.xml"></w2:wframe>
 			<xf:group style="" id="" class="dim"></xf:group>

@@ -1613,6 +1613,10 @@ scwin.validateGroup = function(grpObj, valInfoArr, tacObj, tabId) {
 	const errors = [];
 
 	try {
+
+		//Type2 : comp 하위 message 출력 시 기존 message 제거 
+		//scwin._clearValidateError( grpObj );
+
 		for (let objIdx in objArr) {
 			const obj = objArr[objIdx];
 
@@ -1698,10 +1702,14 @@ scwin.validateGroup = function(grpObj, valInfoArr, tacObj, tabId) {
 				}
 			}
 
+            //Type1 : alert 으로 메시지 처리 & 해당 컴포넌트 focus 
 			$c.win.alert(errors[0].message, function(param) {
 				const obj = $p.getComponentById(param.objId);
 				obj.focus();
 			}, option);
+
+            //Type2 : comp 하위 메시지 출력
+            //scwin._setValidateError(errors[0]);
 
 			return false;
 		} else {
@@ -1745,6 +1753,46 @@ scwin.validateGroup = function(grpObj, valInfoArr, tacObj, tabId) {
 		objArr = null;
 	}
 };
+
+
+//Type2: comp 하위 message 출력 
+scwin._setValidateError = function( errors ) {
+	//대상 comp obj 
+	var compObj = $c.util.getComponent( errors.objId );
+	
+	//대상 comp obj 에 class 셋팅 (제거 시 체크용도 & 색상?) 
+	compObj.addClass("borderRed");	
+	
+	//message textbox 생성 
+	var tagType = "textbox";
+	var options = { style : "width:100%; height:25px; color:red" };
+	var parentObj = compObj.parentControl;
+	var errComp = $c.util.createComponent( errors.objId + "_error", tagType, options, parentObj );
+	
+	//message textbox 값 셋팅 
+	errComp.setValue( errors.message );
+	errComp.addClass("validateError");	
+	
+	//대상 comp obj 에 focus
+	compObj.focus();
+};
+
+//에러 메시지 출력 제거 
+scwin._clearValidateError = function( grpObj ) {
+	//해당 grpObj 하위의 error class 제거 
+	$('#'+grpObj.id).find(".borderRed").removeClass("borderRed");
+
+	//$("#"+grpObj.id).find(".validateError").remove();		//jquery remove시 웹스퀘어 scope 에는 남아있음. 	
+	
+	//해당 grpObj 하위의 error class 객체 제거 (jquery remove는 객체가 남아있음...) 
+	var errorObj = $('#'+grpObj.id).find(".validateError");
+	if ( errorObj.length > 0 ) {
+		for ( var i=0; i<errorObj.length; i++ ) {
+			$c.util.getComponent(errorObj[i].id).remove();
+		}
+	}
+};
+
 
 /**
  * @method
@@ -2244,6 +2292,12 @@ scwin.getMatchedJSON = function(dataListObj, condArr) {
 	}
 	
 	const returnData = [];
+    
+    //dataListObj 가 없을 경우 방지 (LHC)
+    if ( typeof dataListObj == "undefined" ){
+        return [];
+    }
+
 	const allData = dataListObj.getAllJSON();
 
 	if ($c.util.isArray(condArr) === false) {

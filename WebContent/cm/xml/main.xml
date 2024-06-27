@@ -175,6 +175,12 @@ scwin.setReleaseInfo = function (rsArr) {
  */
 scwin.txt_version1_onclick = function (e) {
     $p.main().wfm_side.getWindow().scwin.setMenuRelation("릴리즈관리", "/ui/BM/BM005M01.xml","001001005");
+	/*
+	const option = {
+		isHistory: true
+	};
+	$c.win.openMenu("릴리즈관리", "/ui/BM/BM005M01.xml", "BM005M01", null, option);
+	*/
 };]]></script>
 	</head>
 	<body ev:onpageload="scwin.onpageload">

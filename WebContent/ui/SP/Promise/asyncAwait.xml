@@ -276,14 +276,15 @@ scwin.onpageload = function () {
  * @param {Object} e 이벤트정보가 담긴 객체
  */
 scwin.btn_trigger1_onclick = async function (e) {
-	await $c.win.alert("Step - 1");
-	console.log("Step - 1");
+	var result;
+    result = await $c.win.alert("Step - 1");
+	console.log("Step - 1", result);
 
-	await $c.win.alert("Step - 2");
-	console.log("Step - 2");
+	result = await $c.win.alert("Step - 2");
+	console.log("Step - 2", result);
 
-	await $c.win.alert("Step - 3");
-	console.log("Step - 3");
+	result = await $c.win.alert("Step - 3");
+	console.log("Step - 3", result);
 };
 
 

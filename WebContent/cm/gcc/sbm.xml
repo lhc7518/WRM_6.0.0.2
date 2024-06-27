@@ -529,7 +529,8 @@ scwin.resultMsg = function(resultData) {
 		case msgCode.STATUS_ERROR:
 			if (resultData.errorCode == "E0001") {
 				const alertMsg = $c.data.getMessage("MSG_CM_00003", message);
-				$c.win.alert(alertMsg, function() { $c.win.reload(); });
+				//$c.win.alert(alertMsg, function() { $c.win.reload(); });
+				$c.win.alert(alertMsg, function() { $c.win.goHome(); });		//direct로 화면 open 시 reload 는 기존 화면 무한루프 시키므로, goHome 으로 변경 (LHC)  
 			} else if ($c.util.isEmpty(message) === false) {
 				$c.win.alert(message);
 			}

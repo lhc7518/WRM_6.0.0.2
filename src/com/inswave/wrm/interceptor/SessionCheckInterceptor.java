@@ -37,7 +37,8 @@ public class SessionCheckInterceptor extends HandlerInterceptorAdapter {
 						response.setCharacterEncoding("UTF-8");
 						response.getWriter().write("define({declaration:{A:{version:'1.0',encoding:'UTF-8'}},E:[{T:1,N:'html',A:{xmlns:'http://www.w3.org/1999/xhtml','xmlns:ev':'http://www.w3.org/2001/xml-events','xmlns:w2':'http://www.inswave.com/websquare','xmlns:xf':'http://www.w3.org/2002/xforms'},E:[{T:1,N:'head',E:[{T:1,N:'w2:type',E:[{T:3,text:'COMPONENT'}]},{T:1,N:'w2:buildDate'},{T:1,N:'w2:MSA'},{T:1,N:'xf:model',E:[{T:1,N:'w2:dataCollection',A:{baseNode:'map'}},{T:1,N:'w2:workflowCollection'}]},{T:1,N:'w2:layoutInfo'},{T:1,N:'w2:publicInfo',A:{method:''}},{T:1,N:'script',A:{lazy:'false',type:'text/javascript'},E:[{T:4,cdata:function(scopeObj){with(scopeObj){ ");
 						response.getWriter().write("scwin.onpageload = function() { ");
-						response.getWriter().write("	$c.win.alert($p, 'Session이 종료 되었습니다.\\n로그인 화면으로 이동하겠습니다.', function() { $c.win.reload($p); }, true); ");
+						//response.getWriter().write("	$c.win.alert($p, 'Session이 종료 되었습니다.\\n로그인 화면으로 이동하겠습니다.', function() { $c.win.reload($p); }, true); ");
+						response.getWriter().write("	$c.win.alert($p, 'Session이 종료 되었습니다.<br/>로그인 화면으로 이동하겠습니다.', function() { $c.win.goHome($p); }, true); ");		//direct로 화면 open 시 reload 는 기존 화면 무한루프 시키므로, goHome 으로 변경 (LHC)  
 						response.getWriter().write("}; ");
 						response.getWriter().write("}}}]}]},{T:1,N:'body',A:{'ev:onpageload':'scwin.onpageload'}}]}]}) ");
 					} else {

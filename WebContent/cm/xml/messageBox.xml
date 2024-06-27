@@ -40,9 +40,9 @@ scwin.onpageload = function () {
 scwin.btn_confirm_onclick = function (e) {
 	try {
 		scwin.callBackParam = $c.data.getParameter("callBackParam");
-		if (scwin.getMessageType() == "confirm") {
-			scwin.callBackParam.clickValue = true;
-		}
+		//if (scwin.getMessageType() == "confirm") {
+			scwin.callBackParam.clickValue = true;      //alert 에서도 true 로 넘기도록 처리(LHC)
+		//}
 		$c.win.closePopup(scwin.callBackParam);
 	} catch (ex) {
 		console.error(ex);
@@ -82,7 +82,7 @@ scwin.getMessageType = function () {
 	<body ev:onpageload="scwin.onpageload">
 		<xf:group id="" class="pop_contents"> 
 	    	<xf:group id="" class="msbox">
-	    		<w2:textbox id="tbx_message" label="" style="" class="grp_poptxt"></w2:textbox>
+	    		<w2:textbox id="tbx_message" label="" style="" class="grp_poptxt" escape="false"></w2:textbox>
 	    	</xf:group>
 	    	<xf:group class="btnbox" id="" style="">
 	    		<xf:group class="rt" id="">

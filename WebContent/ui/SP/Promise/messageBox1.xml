@@ -35,7 +35,8 @@ scwin.onpageload = function () {
  */
 scwin.btn_confirm_onclick = function (e) {
 	try {
-		$c.win.closePopup({ clickValue: true });
+		//$c.win.closePopup({ clickValue: true }); 
+        $c.win.closePopup(true);
 	} catch (ex) {
 		console.error(ex);
 	}

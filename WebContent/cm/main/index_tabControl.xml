@@ -12,6 +12,7 @@
 
 		<meta name="viewport" content="width=device-width, user-scalable=no"></meta>
 		<w2:common src="../../cm/pcc/main.xml"  id="main"></w2:common>
+        <w2:common src="/cm/pcc/zTest.xml" id="test"></w2:common>   <!-- 페이지 공통 컴포넌트 (test) -->
 		<script type="text/javascript" lazy="false"><![CDATA[
 /**
  * @component
@@ -37,6 +38,11 @@
 scwin.chatFlag = false;
 
 scwin.onpageload = function () {
+
+    //test용 객체 test 
+    test.test();
+
+
     // Mobile일때 메뉴 동작	
     if (WebSquare.util.isMobile()) {
         grp_wrap.removeClass("show_menu");
@@ -102,12 +108,35 @@ scwin.settingBox_handlerEvent = function (e) {
  */
 scwin.btn_tab_allclose_onclick = async function () {
     main.pushStateMain();
+    /*
     scwin.tabCount = tac_layout.getTabCount();
      for (let i = scwin.tabCount; i > 0; i--) {
         await tac_layout.deleteTab(i);    
     }
-}
+    */
 
+    //----------------------------
+    $c.win.confirm("전체 닫기 합니다.", async function(res){   
+        if ( res.clickValue ) {
+            scwin.tabCount = tac_layout.getTabCount();
+            for (var i = scwin.tabCount-1; i >= 0; i--) {
+                var tabId = tac_layout.getTabID(i);
+                if ( tabId != "MAIN" ) {		
+				/*
+                    await new Promise(function (resolve) {
+                        $c.util.setTimeout(function () {
+                            tac_layout.getFrame(0).focus();
+                            resolve();
+                        }, { delay: 10, key: "btn_tab_allclose" + (Math.random() * 16).toString().replace('.', '') });
+                    });
+				*/
+                    scwin.closeTab(i);
+                }
+            }
+        }
+    })
+
+};
 
 /**
  * @event
@@ -115,9 +144,42 @@ scwin.btn_tab_allclose_onclick = async function () {
  * @description 탭뷰 모드에서 탭이 닫히기 전 이벤트 정의
  */
 scwin.tac_layout_onbeforetabclose = function (tabID, idx) {
-    const tabFrame = this.getFrame(idx);
-    return main.closeBeforePage(tabFrame);
+    //const tabFrame = this.getFrame(idx);
+    //return main.closeBeforePage(tabFrame);
+
+	if ( $c.win.getIsCloseBasic() ){
+		//var tabFrame = this.getFrame(idx);
+		var tabFrame = tac_layout.getFrame(idx);
+		return main.closeBeforePage(tabFrame);
+
+	} else {
+		//var tabFrame = this.getFrame(idx);
+		var tabFrame = tac_layout.getFrame(idx);
+		if ( main.checkBeforeCloseModified(tabFrame) ) {
+			$c.win.confirm($c.data.getMessage("MSG_CM_00006"), function(res){
+				if ( res.clickValue ){
+					scwin.closeTab(idx);
+				}				
+			});
+			return false;
+		} else {
+			return true;
+		}
+	}
 };
+
+//강제 tab colse (LHC)
+scwin.closeTab = function(idx){	
+	//onbeforetabclose 이벤트 unbind
+	tac_layout.unbind("onbeforetabclose");
+
+	//tab close 
+	tac_layout.deleteTab(idx);
+	
+	//onbeforetabclose 이벤트 bind
+	tac_layout.bind("onbeforetabclose", "scwin.tac_layout_onbeforetabclose");
+};
+
 
 /**
  * @event

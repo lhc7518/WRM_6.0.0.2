@@ -15,7 +15,7 @@ xmlns:xf="http://www.w3.org/2002/xforms">
 		</xf:model>
 		<w2:layoutInfo>
 		</w2:layoutInfo>
-		<w2:publicInfo method="scwin.initMainLoad,scwin.closeBeforePage,scwin.pushStateMain,scwin.setHeaderMenu,scwin.getLayoutId,scwin.isMobileSize"/>
+		<w2:publicInfo method="scwin.initMainLoad,scwin.closeBeforePage,scwin.pushStateMain,scwin.setHeaderMenu,scwin.getLayoutId,scwin.isMobileSize,scwin.checkBeforeCloseModified"/>
         <script lazy="false" type="text/javascript"><![CDATA[
 scwin.onpageload = function() {
 	
@@ -106,6 +106,7 @@ scwin.isMobileSize = function() {
  * @example main.closeBeforePage(frameObj)
  */ 
 scwin.closeBeforePage = function(frameObj) {
+    /*    
 	if (checkBeforeCloseModified(frameObj)) {
 		if (confirm($c.data.getMessage("MSG_CM_00006"))) {
 			return true;
@@ -132,10 +133,76 @@ scwin.closeBeforePage = function(frameObj) {
 				}
 			}
 		}
-
 		return false;
-	};
+	};    
+    */
+
+	if ( $c.win.getIsCloseBasic() ){
+		if (scwin.checkBeforeCloseModified(frameObj)) {
+			if (confirm($c.data.getMessage("MSG_CM_00006"))) {		//'창을 닫으시겠습니까? 변경사항이 저장되지 않을 수 있습니다.'
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return true;
+		}
+    } else {
+		if (scwin.checkBeforeCloseModified(frameObj)) {
+			$c.win.confirm($c.data.getMessage("MSG_CM_00006"), function(res){
+				if ( res.clickValue ){
+					frameObj.getWindow().$p.getFrame().setUserData("close", true);      //팝업에서 닫기 시 체크 flag 
+					$p.closePopup(frameObj.getWindow().$p.getPopupId());
+					
+					//windowContainer 일 경우 팝업창 닫을 시 window 닫기 수행
+					if ( scwin.getLayoutId() == "M" ){
+						//$p.top().wdc_main.closeWindow($p.top().wdc_main.getSelectedWindowId());		//선택되지 않은 윈도우의 X 클릭할 경우도 있기에 X 
+						$p.top().wdc_main.closeWindow(frameObj.parentControl._windowId);
+					}
+					
+				} else {
+					frameObj.getWindow().$p.getFrame().setUserData("close", false);      //팝업에서 닫기 시 체크 flag 
+				}
+			});
+			return false;
+			
+		} else {
+			frameObj.getWindow().$p.getFrame().setUserData("close", true);      //팝업에서 닫기 시 체크 flag 
+			return true;
+		}
+    }
 };
+
+
+/**
+ * @method
+ * @name checkBeforeCloseModified
+ * @description 화면이 닫히 전에 변경된 데이터가 있는지 여부 결과 return (LHC)
+ * @param {string} frameObj desc
+ * @hidden N
+ * @exception 
+ * @example ${example}
+ */ 
+scwin.checkBeforeCloseModified = function(frameObj) { 
+	const changeCheckMainFrame = $c.data.getChangeCheckedMainFrame(frameObj.scope.$p);
+	if (!$c.util.isEmpty(changeCheckMainFrame)) {
+		const changeCheckDcList = $c.data.getChangeCheckedMainFrame(frameObj.scope.$p)._changeCheckDcList;
+
+		if (!$c.util.isEmpty(changeCheckDcList) && $c.util.isArray(changeCheckDcList) && (changeCheckDcList.length > 0)) {
+			for (let i = 0; i < changeCheckDcList.length; i++) {
+				const dlObj = $c.util.getComponent(changeCheckDcList[i]);
+				if (!$c.util.isEmpty(dlObj) && (dlObj.getObjectType() == "dataList" || dlObj.getObjectType() == "dataMap")) {
+					if (dlObj.getModifiedIndex().length > 0) {
+						return true;
+					}
+				}
+			}
+		}
+	}
+	return false;
+};
+
+
 
 /**
  * @method

@@ -101,7 +101,9 @@ export default {
     },
     "initScript": {
       "#cdata": function() { 
-        if (movePage.indexOf("/cm/main/login.xml") === -1) {
+		//movePage is not defined  
+        if ( typeof movePage != "undefined" && movePage.indexOf("/cm/main/login.xml") === -1 ) {
+        //if ( movePage.indexOf("/cm/main/login.xml") === -1 ) {
         	$c.hkey.init($p);
 	        $c.hkey.setShortKey($p, $p.main());
 	        $c.win.setLangCode($p, $c.win.getLanguage($p));
@@ -216,7 +218,16 @@ export default {
         }
       ]
     },
-    "engine": {},
+    "engine": {
+      "module": [
+        {
+          "@src": "/cm/extJs/jquery-ui.min.js"
+        },
+        {
+          "@src": "/cm/extJs/jquery.ui.touch-punch.min.js"
+        }
+      ]
+    },
     "udc": {
       "requires": {
         "require": {
@@ -312,8 +323,8 @@ export default {
       "@value": "false"
     },
     "environment": {
-      "@cache": "nocache",
-      "@mode": "production",
+      "@cache": "cache",
+      "@mode": "development",
       "@postfix": "day"
     },
     "script": {

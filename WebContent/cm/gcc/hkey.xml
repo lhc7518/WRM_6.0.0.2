@@ -13,7 +13,7 @@ xmlns:xf="http://www.w3.org/2002/xforms">
 			<w2:workflowCollection/>
 		</xf:model>
 		<w2:layoutInfo/>
-		<w2:publicInfo method="scwin.init,scwin.isUseShortCut,scwin.setEventPause,scwin.setShortKey,scwin.setCkEditorShortKeyDownAction,scwin.addEvent,scwin.keyToken,scwin.delEvent"/>
+		<w2:publicInfo method="scwin.init,scwin.isUseShortCut,scwin.setEventPause,scwin.setShortKey,scwin.setCkEditorShortKeyDownAction,scwin.setData,scwin.addEvent,scwin.keyToken,scwin.delEvent"/>
 		<script lazy="false" type="text/javascript"><![CDATA[
 
 // =============================================================================
@@ -160,13 +160,20 @@ scwin.setShortKey = function(frame) {
 	}
 	
 	// login 화면인지 chk, login 화면은 단축키를 설정하지 않는다.
-	const loginDisplay = frameP.getParentWindow().scwin.loginChk
+	const loginDisplay = frameP.getParentWindow().scwin.loginChk;
 	if( loginDisplay && loginDisplay === 'login.xml') {
 		return false;
 	} else {
 		const programCd = $c.win.getProgramId(frameP);
 		const programShortKeyInfo = $c.data.getMatchedJSON($c.hkey.dataList, { columnId : "PROGRAM_CD", operator : "==", value : programCd });
 		
+        //세션 종료 시 alert 메시지 호출 되는데, 해당 alert 메시지 창에서도 shortKey 데이터 조회를 하게되면 무한루프로 동작... (LHC)
+        //기존에는 programId 를 wframe의 src 에서 /ui/ 가 들어간것만 반환하고 있어서, /cm/xml/messageBox.xml 은 제외 되었음 : programId 는 "" 
+        //처리방안1. 공통 메시지 창에서는 shortKey 조회 하지 않도록 분기 
+        if ( $c.data.getParameter("messageType") == "alert" || $c.data.getParameter("messageType") == "confirm" ) {
+            return false;
+        }
+
 		if (!$c.util.isEmpty(programCd) && !$c.util.isEmpty(programShortKeyInfo) && (programShortKeyInfo.length === 0)) {
 			const searchCodeGrpOption = { 
 				id : "_sbm_selectShortcutList", action : "/main/selectShortcutList", 
@@ -219,6 +226,51 @@ scwin.setCkEditorShortKeyDownAction = function() {
 		}
 	}, {delay:1000, key:"ckEditorKeyDownEventBindingTimer"});
 };
+
+
+/**
+ * 단축키 정보 직접 등록 (LHC)
+ * ( 해당 화면의 onpageload 시 등록 ) 
+ * 
+ * @param {Array} shortKeyArray  
+ * @example
+var shortKeyArray = [
+	{ complexKey: "ctrl", lastKey: "q", func: "scwin.search1" },
+	{ complexKey: "alt", lastKey: "w", func: "scwin.search2" }
+];
+$c.hkey.setData(shortKeyArray);
+ */
+scwin.setData = function(shortKeyArray) {
+	if ( shortKeyArray.length > 0 ) {
+		var programCd = "";
+		var menuInfo = $c.data.getParameter("menuInfo");
+		if ( menuInfo && !$c.util.isEmpty(menuInfo) && !$c.util.isEmpty(menuInfo.programCd) ) {
+			programCd = menuInfo.programCd;
+		}
+		
+		if ( programCd == "" )	return;
+
+		//동일 programCd 는 제거 
+		var matchIndex = $c.hkey.dataList.getMatchedIndex("PROGRAM_CD", programCd, true);
+		$c.hkey.dataList.removeRows(matchIndex);
+		
+		var shortKeyData = [];
+		for ( var i in shortKeyArray ) {
+			var data = {};
+			data.EVENT_TYPE = "F";		//function(F), buttion(B) 
+			data.EVENT_YN = "Y";
+			data.PROGRAM_CD = programCd;
+			data.COMPLEX_KEY = shortKeyArray[i].complexKey + "Key";
+			data.LAST_KEY = String(shortKeyArray[i].lastKey).toUpperCase();
+			data.EVENT_TARGET = shortKeyArray[i].func;
+			
+			shortKeyData.push(data);
+		}
+		
+		$c.hkey.dataList.setJSON(shortKeyData, true);		//append
+	}
+};
+
 
 // 단축키 이벤트가 로딩 되었는지 여부 설정
 scwin.loadingEvent = 'Y';

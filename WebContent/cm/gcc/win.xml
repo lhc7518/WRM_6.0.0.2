@@ -11,7 +11,7 @@
 			<w2:workflowCollection/>
 		</xf:model>
 		<w2:layoutInfo/>
-		<w2:publicInfo method="scwin.__getI18NUrl,scwin.getScope,scwin.__getScope,scwin.getActiveWindowInfo,scwin.showToastMessage,scwin.openMenu,scwin.openPopup,scwin.closePopup,scwin.closeAllPopup,scwin.isPopup,scwin.messagBox,scwin.setProgramAuthority,scwin.processCommonData,scwin.setHistoryBackEvent,scwin.pushState,scwin.changePageState,scwin.addEventOnBeforeUnload,scwin.removeEventOnBeforeUnload,scwin.__setOnBeforeUnload,scwin.errorHandler,scwin.reload,scwin.getProgramId,scwin.goHome,scwin.logout,scwin.isAdmin,scwin.getFullPath,scwin.setEnterKeyEvent,scwin.alert,scwin.confirm,scwin.getLanguage,scwin.getPopupId,scwin.moveUrl,scwin.setWFrameSrc,scwin.getFrame,scwin.getParent,scwin.setLangCode,scwin.getLangCode,scwin.getCbFunctionManager"/>
+		<w2:publicInfo method="scwin.__getI18NUrl,scwin.getScope,scwin.__getScope,scwin.getActiveWindowInfo,scwin.showToastMessage,scwin.openMenu,scwin.openPopup,scwin.closePopup,scwin.closeAllPopup,scwin.isPopup,scwin.messagBox,scwin.setProgramAuthority,scwin.processCommonData,scwin.setHistoryBackEvent,scwin.pushState,scwin.changePageState,scwin.addEventOnBeforeUnload,scwin.removeEventOnBeforeUnload,scwin.__setOnBeforeUnload,scwin.errorHandler,scwin.reload,scwin.getProgramId,scwin.goHome,scwin.logout,scwin.isAdmin,scwin.getFullPath,scwin.setEnterKeyEvent,scwin.alert,scwin.confirm,scwin.getLanguage,scwin.getPopupId,scwin.moveUrl,scwin.setWFrameSrc,scwin.getFrame,scwin.getParent,scwin.setLangCode,scwin.getLangCode,scwin.getCbFunctionManager,scwin.setPopCloseAction,scwin.getIsCloseBasic"/>
 		<script lazy="false" type="text/javascript"><![CDATA[
 /**
  * @component
@@ -51,6 +51,11 @@ scwin.CB_FUNCTION_MANAGER = {
 	cbFuncIdx : 0, // 정보 저장 Index Key
 	cbFuncSave : {} // 정보 저장 객체
 };
+
+
+//close 시 팝업 옵션 (true: 일반, false: wframe) - LHC  
+scwin.IS_CLOSE_BASIC = false;
+
 
 scwin.onpageload = function() {
 	requires("uiplugin.popup");
@@ -198,19 +203,28 @@ scwin.getActiveWindowInfo = function(scopeApi) {
 			findProgramList = $c.data.menuComp.getMatchedJSON("MENU_CD", selectedTabId, true);
 			if (findProgramList.length > 0) {
 				activeInfo["programCd"] = findProgramList[0].PROGRAM_CD;
-			}
+			} else {
+				//미등록 메뉴인 경우 임시로 소스 xml 의 파일명으로 지정 (임시) - LHC
+				activeInfo["programCd"] = $c.win.getProgramId($p.main().tac_layout.getWindow(selectedTabId).$p);
+            }
 			activeInfo["window"] = $p.main().tac_layout.getWindow(selectedTabId);
 		} else if (activeInfo["type"] == "M") {
 			const selectedWindowId = $p.main().wdc_main.getSelectedWindowId();
 			findProgramList = $c.data.menuComp.getMatchedJSON("MENU_CD", selectedWindowId, true);
 			if (findProgramList.length > 0) {
 				activeInfo["programCd"] = findProgramList[0].PROGRAM_CD;
-			}
+			} else {
+				//미등록 메뉴인 경우 임시로 소스 xml 의 파일명으로 지정 (임시) - LHC
+				activeInfo["programCd"] = $c.win.getProgramId($p.main().wdc_main.getWindow(selectedWindowId).$p);
+            }
 			activeInfo["window"] = $p.main().wdc_main.getWindow(selectedWindowId);
 		} else if (activeInfo["type"] == "S") {
 			if (!$c.util.isEmpty($c.data.getParameter($p.main().wfm_layout.getWindow().$p, "menuInfo"))) {
-				activeInfo["programCd"] = $c.data.getParameter($p.main().wfm_layout.getWindow().$p, "menuInfo");
-			}
+				activeInfo["programCd"] = $c.data.getParameter($p.main().wfm_layout.getWindow().$p, "menuInfo"); 
+			} else {
+				//미등록 메뉴인 경우 임시로 소스 xml 의 파일명으로 지정 (임시) - LHC
+				activeInfo["programCd"] = $c.win.getProgramId($p.main().wfm_layout.getWindow().$p);
+            }
 			activeInfo["window"] = $p.main().wfm_layout.getWindow();
 		}
 	} else {
@@ -348,6 +362,7 @@ scwin.openMenu = function(menuNm, url, menuCode, paramObj, option) {
 		let data = {};
 		let closable = true;
 		let fixed = false;		
+        let refresh = false;		
 
 		if (url.indexOf("/") !== 0) {
 			url = "/" + url;
@@ -356,12 +371,23 @@ scwin.openMenu = function(menuNm, url, menuCode, paramObj, option) {
 
 		if ((typeof paramObj !== "undefined") && (paramObj !== null)) {
 			data = paramObj;
+            refresh = true;		//파라미터 존재 시 refresh 되도록...(LHC) 
 		}
 		
+		//programCd 추가 (LHC) 
+		var programCd = $c.data.menuComp.getMatchedColumnData("SRC_PATH", url, "PROGRAM_CD")[0] || "";
+		
+		//등록된 메뉴가 아닐 경우 url 에서 임시 programCd 추출하여 사용 ??? (사용시 검토가 필요함)  & gcm.win.getActiveWindow() 에서도 동일하게 처리 해야함... 
+		//hotkey 처리가 필요한 경우 gm.win.getActiveWindow() 를 통해서 programCd 를 가져오기에 동일하게 처리 필요 (LHC) 
+		if ( programCd == "" ) {
+			programCd = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));		// '/ui/SP/Promise/asyncAwait.xml' => asyncAwait
+		}
+
 		data.menuInfo = {
 			menuNm : menuNm,
 			menuCode : menuCode,
-			src : url
+			src : url,
+            programCd : programCd
 		};
 		
 		if (!$c.util.isEmpty(option) && !$c.util.isEmpty(option.menuType)) {
@@ -379,7 +405,8 @@ scwin.openMenu = function(menuNm, url, menuCode, paramObj, option) {
 		if (layout == "T") {
 			const tabObj = { 
 				closable : closable, // 탭 닫기 기능 제공
-				openAction : "select", // exist 는 기존 탭을 갱신, new 는 항상 새로, select는 동일 id 가 존재하면 선택, last: 기존 tab을 마지막 tab으로 이동후 선택
+				//openAction : "select", // exist 는 기존 탭을 갱신, new 는 항상 새로, select는 동일 id 가 존재하면 선택, last: 기존 tab을 마지막 tab으로 이동후 선택
+                openAction : (refresh === true) ? "exist":"select", // exist 는 기존 탭을 갱신, new 는 항상 새로, select는 동일 id 가 존재하면 선택, last: 기존 tab을 마지막 tab으로 이동후 선택
 				label : menuNm 
 			};
 			
@@ -416,7 +443,8 @@ scwin.openMenu = function(menuNm, url, menuCode, paramObj, option) {
 				src : url,
 				windowTitle : menuNm,
 				windowId : menuCode,
-				openAction : "selectWindow",
+				//openAction : "selectWindow",
+                openAction : (refresh === true) ? "existWindow":"selectWindow",
 				frameMode : "wframe",
 				fixed : (fixed === true) ? true:false,
 				_closable : (closable === false) ? false : true,
@@ -426,16 +454,21 @@ scwin.openMenu = function(menuNm, url, menuCode, paramObj, option) {
 					if (winScope.options._closable === false) {
 						return false;
 					} else {
-						const isOnbeforecloseall = $p.main().wdc_main.getUserData("isOnbeforeCloseAll");
-						
-						if ((typeof isOnbeforecloseall === "undefined") || (isOnbeforecloseall === false)) {
-							const isClose = $p.main().main.closeBeforePage(winScope.$p.getFrame());
-							if (isClose === false) {
-								$p.main().wdc_main.setFocus($p.main().wdc_main.getSelectedIndex());
-							}
-							$p.main().wdc_main.setUserData("isOnbeforeCloseAll", false);
-							return isClose;
-						}
+
+                        //수정버전 (기본이거나, wframe 일경우 getUserData('close') == false 일 경우 체크) - LHC 
+						if ( $c.win.getIsCloseBasic() || $p.top().wdc_main.getWindow(this._windowId).$p.getFrame().getUserData('close') !== true ) {
+
+                            const isOnbeforecloseall = $p.main().wdc_main.getUserData("isOnbeforeCloseAll");
+                            
+                            if ((typeof isOnbeforecloseall === "undefined") || (isOnbeforecloseall === false)) {
+                                const isClose = $p.main().main.closeBeforePage(winScope.$p.getFrame());
+                                if (isClose === false) {
+                                    $p.main().wdc_main.setFocus($p.main().wdc_main.getSelectedIndex());
+                                }
+                                $p.main().wdc_main.setUserData("isOnbeforeCloseAll", false);
+                                return isClose;
+                            }
+                        }
 						
 						return true;
 					}
@@ -460,6 +493,53 @@ scwin.openMenu = function(menuNm, url, menuCode, paramObj, option) {
 				}
 			});
 		} else if(layout == "S") {
+
+			let isClose = true;
+			if ( $c.win.getIsCloseBasic() ) {				
+				isClose = $p.main().main.closeBeforePage($p.main().wfm_layout.getWindow().$p.getFrame()); 
+			} else {
+				const frameObj = $p.main().wfm_layout.getWindow().$p.getFrame();
+				if ( $p.main().main.checkBeforeCloseModified(frameObj) ) {
+					$c.win.confirm("수정된 사항에 대해서 저장하지 않았습니다. 저장하지 않고 화면을 닫으시겠습니까?", function(res){
+						if ( res.clickValue ) {
+							return _wframeOpen();
+						}
+					});
+					isClose = false;
+				}
+			}
+			
+			if ( isClose ) {
+				return _wframeOpen();
+			}
+			
+			//wframe open 시 처리 로직 
+			async function _wframeOpen() {
+				const programCd = $p.main().wfm_side.getWindow().dlt_menu.getMatchedColumnData("SRC_PATH", url, "PROGRAM_CD");
+				data.menuInfo.programCd = programCd[0];
+		
+				// history에 화면 전환했던 프로그램 코드 저장
+				if (!$c.util.isEmpty(option) && option.isHistory && !$c.util.isEmpty(menuCode)) {
+					$c.win.pushState(data);
+				}
+		
+				const param = {
+					dataObject : {
+						type : "json",
+						name : "paramData",
+						data : data
+					}
+				};
+
+				return Promise.resolve().then(function() {
+					return $p.main().wfm_layout.setSrc(url, param);
+				}).then(function(isOpen) {
+					return isOpen;
+				});				
+			}
+
+
+            /*
 			const isClose = $p.main().main.closeBeforePage($p.main().wfm_layout.getWindow().$p.getFrame()); 
 			
 			if (isClose) {
@@ -485,6 +565,7 @@ scwin.openMenu = function(menuNm, url, menuCode, paramObj, option) {
 			} else {
 				return false;
 			}
+            */
 		}
 	}
 	return false;
@@ -540,8 +621,8 @@ scwin.openPopup = function(url, opts, data) {
 				}
 			};
 		}
-		
-		scwin._openPopup($p, url, opts, data);
+
+        scwin._openPopup(url, opts, data);
 	});
 };
 
@@ -570,7 +651,8 @@ scwin.openPopup = function(url, opts, data) {
  */ 
 scwin._openPopup = function(url, opt, data) {
 	data.menuInfo = {
-		src : url
+		src : url,
+        programCd : opt.id		//팝업의 id 를 programId 를 셋팅(LHC) 
 	};
 	
 	const _dataObj = {
@@ -668,7 +750,7 @@ scwin._openPopup = function(url, opt, data) {
 			if($p.top().$p.getComponentById("udc_gridVIew_finder")){
 				$p.top().$p.getComponentById("udc_gridVIew_finder").gridFinderClose();
 			}
-
+            
 			let popupWindow = $p.getPopupWindow(this.id);
 			if($p.getPopupWindow(this.id) == undefined) {
 				popupWindow = this.getScopeWindow();
@@ -676,21 +758,46 @@ scwin._openPopup = function(url, opt, data) {
 
 			let isClose = true;
 
-			if (popupWindow.$p.getFrameId() === null) {
+            //popup close 시 수정여부 체크 LHC ===================================
+			let popupFrame;
+			if ( popupWindow.$p.getFrameId() === null ){
+				popupFrame = window.$p.main().$p.getFrame();
+			} else {
+				popupFrame = popupWindow.$p.getFrame();
+			}
+
+			if ( $c.win.getIsCloseBasic() ){
 				if ($p.main().main && typeof $p.main().main.closeBeforePage === "function") {
-					isClose = $p.main().main.closeBeforePage(window.$p.main().$p.getFrame());
+					isClose = $p.main().main.closeBeforePage( popupFrame );
 				}
 			} else {
 				if ($p.main().main && typeof $p.main().main.closeBeforePage === "function") {
-					isClose = $p.main().main.closeBeforePage(popupWindow.$p.getFrame());
+					isClose = $c.util.isEmpty(popupFrame.getUserData("close")) ? false : popupFrame.getUserData("close");   //main.xml 에서 close 셋팅 
+					if ( !isClose ){
+						isClose = $p.top().main.closeBeforePage( popupFrame );
+					}
 				}
-			}
+			}            
+            //LHC ======================================================
+
+            /*
+            if (popupWindow.$p.getFrameId() === null) {
+                if ($p.main().main && typeof $p.main().main.closeBeforePage === "function") {
+                    isClose = $p.main().main.closeBeforePage(window.$p.main().$p.getFrame());
+                }
+            } else {
+                if ($p.main().main && typeof $p.main().main.closeBeforePage === "function") {
+                    isClose = $p.main().main.closeBeforePage(popupWindow.$p.getFrame());
+                }
+            }
+            */
 
 			if (!isClose) {
 				return false;
 			}
 				
-			const messageType = $c.data.getParameter("messageType", popupWindow.$p) || "alert";
+			//const messageType = $c.data.getParameter("messageType", popupWindow.$p) || "alert";
+            const messageType = $c.data.getParameter("messageType", popupWindow.$p);
 			const callbackFuncStr = $c.data.getParameter("callbackFn", popupWindow.$p);		
 			const callbackFunc = $c.util.getCallBackFunction(callbackFuncStr);
 
@@ -705,20 +812,22 @@ scwin._openPopup = function(url, opt, data) {
 				if (!$c.util.isEmpty(popup) && !$c.util.isEmpty(popup.callbackParam)) {
 					callbackFunc($c.util.getJSON(popup.callbackParam));
 				} else if ($p.main().main && !$c.util.isEmpty(popupWindow.$p.main().scwin._popup) && !$c.util.isEmpty(popupWindow.$p.main().scwin._popup.callbackParam)) {
-					callbackFunc($c.util.getJSON(popupWindow.$p.main().main._popup.callbackParam));
+                    callbackFunc($c.util.getJSON(popupWindow.$p.main().scwin._popup.callbackParam));		//기존 callbackFunc($c.util.getJSON(popupWindow.$p.main().main._popup.callbackParam)); 
 				} else {
-					if (messageType === "confirm") {
-						callbackFunc({ clickValue : false });
+					if (messageType === "confirm" || messageType === "alert") {
+						callbackFunc({ clickValue : false });       //alert, confirm 창 닫기 시 parameter 가 없을 경우 기본적으로 false 리턴
 					}
 				}
 			}
 			return true;
 		},
-		popupUrl : "../popup"
+
+        popupUrl : "../popup"       //팝업경로 ( 기본사용 시  => ../websquare/popup.html ) 
 	};
 
 	$p.openPopup($c.sbm.getContextPath() + url, options);
 };
+
 
 /**
  * @method 
@@ -738,7 +847,7 @@ scwin.closePopup = function(callbackParam, callbackFnStr) {
 			callbackParam : callbackParam
 		};
 	} 
-	scwin._closePopup($p, $c.win.getPopupId(), $c.str.serialize(callbackParam), callbackFnStr);
+    scwin._closePopup($c.win.getPopupId(), $c.str.serialize(callbackParam), callbackFnStr);
 };
 
 // TODO :: 아래의 코드는 테스트 완료 후 삭제해야 합니다.
@@ -754,12 +863,16 @@ scwin.closePopup = function(callbackParam, callbackFnStr) {
  * @exception 
  * @example
  */ 
-scwin._closePopup = function($p, popId, callbackParamStr, callbackFnStr) { 
+scwin._closePopup = function(popId, callbackParamStr, callbackFnStr) { 
 	$c.util.setTimeout(
 		function() {
 			if ($p.isWFramePopup()) {
 				$p.closePopup(popId);
 			} else {
+
+                //파라미터 callback 함수 셋팅 필요함.... (LHC)
+                callbackFnStr = $c.util.isEmpty(callbackFnStr) ? $c.data.getParameter("callbackFn") : callbackFnStr;
+
 				let func = $c.util.getCallBackFunction(callbackFnStr);
 				
 				if (func) {
@@ -901,7 +1014,7 @@ scwin.messagBox = function(messageType, messageStr, closeCallbackFncName, opts) 
  * @exception 
  * @example
  */ 
-scwin.setProgramAuthority = function($p) {
+scwin.setProgramAuthority = function() {
 	const menuInfo = $c.data.getParameter("menuInfo");
 
 	if ((typeof menuInfo !== "undefined") && (typeof menuInfo.menuCode !== "undefined") && (menuInfo.menuCode.trim() !== "")) {
@@ -957,7 +1070,7 @@ scwin.setProgramAuthority = function($p) {
  * @exception 
  * @example
  */ 
-scwin.processCommonData = function($p) {
+scwin.processCommonData = function() {
 	const scwinObj = $c.util.getObject($p, "scwin");
 	
 	const commonDataWorkflow = {
@@ -1054,7 +1167,7 @@ scwin.__changePageState = function() {
 		const options = {};
 		options.isHistory = false;
 		const data = history.state.data;
-		$c.win.openMenu($p, data.menuInfo.menuNm, data.menuInfo.src, data.menuInfo.menuCode, data.param, options);
+		$c.win.openMenu(data.menuInfo.menuNm, data.menuInfo.src, data.menuInfo.menuCode, data.param, options);
 	}
 };
 
@@ -1141,13 +1254,19 @@ scwin.reload = function() {
  * @example
 const programId = $c.win.getProgramId();
  */ 
-scwin.getProgramId = function($p, scopeApi) { 	
+scwin.getProgramId = function(scopeApi) { 	
 	let programId = "";
 
 	if(typeof(scopeApi) == "object") {
 		programId = scwin.__getProgramId(scopeApi);
 		return programId;
-	};
+	} 
+
+    //팝업에서는 팝업ID 를 programCd 로 설정 (LHC) 
+    var menuInfo = $c.data.getParameter("menuInfo");
+    if ( !$c.util.isEmpty(menuInfo) && !$c.util.isEmpty(menuInfo.programCd) ) {
+        return menuInfo.programCd;
+    }
 	
 	if ($c.util.isEmpty($p.getMetaValue("meta_screenId"))) {
 		// 웹스퀘어 파일명을 프로그램 아이디와 동일하게 작성한 경우에만 정상 동작한다.
@@ -1180,6 +1299,12 @@ scwin.getProgramId = function($p, scopeApi) {
 scwin.__getProgramId = function(scopeApi) {
 	const $p = scopeApi;
 	let programId = "";
+
+    //팝업에서는 팝업ID 를 programCd 로 설정 (LHC) 
+    var menuInfo = $c.data.getParameter("menuInfo");
+    if ( !$c.util.isEmpty(menuInfo) && !$c.util.isEmpty(menuInfo.programCd) ) {
+        return menuInfo.programCd;
+    }    
 	
 	if ($c.util.isEmpty($p.getMetaValue("meta_screenId"))) {
 		// 웹스퀘어 파일명을 프로그램 아이디와 동일하게 작성한 경우에만 정상 동작한다.
@@ -1378,9 +1503,20 @@ scwin.alert = function(messageStr, closeCallbackFncName, opts) {
 		}
 
 		if ($c.util.isEmpty(closeCallbackFncName)) {
+            /*
 			closeCallbackFncName = function() {
 				resolve();
 			};
+            */
+            //confirm 과 동일하게 확인 시 true, 아닌경우 false 리턴 (LHC)
+			closeCallbackFncName = function(rtn) {
+				if (!$c.util.isEmpty(rtn) && !$c.util.isEmpty(rtn.clickValue)) {
+					resolve(rtn.clickValue);
+				} else {
+					resolve(false);
+				}
+			};
+
 		}
 		
 		$c.win.messagBox("alert", messageStr, closeCallbackFncName, opts);
@@ -1600,6 +1736,79 @@ scwin.getLangCode = function(langCode) {
 scwin.getCbFunctionManager = function () {
 	return scwin.CB_FUNCTION_MANAGER
 };
+
+/**
+ * @method
+ * @name getIsCloseBasic
+ * @description close 시 팝업 옵션(true:일반, false:wframe) 을 가져온다.
+ * @param
+ * @returns {Boolean} $c.win에 선언된 IS_CLOSE_BASIC 값을 가져온다
+ * @hidden N
+ * @exception
+ * @example const IS_CLOSE_BASIC = $c.win.getIsCloseBasic();
+ */
+scwin.getIsCloseBasic = function () {
+	return scwin.IS_CLOSE_BASIC;
+};
+
+/**
+ * 팝업창(wframe)의 상단 닫기 버튼(X) 클릭 시 별도 함수 호출  (LHC)
+ * ( 단, 함수 지정 시 팝업창 닫기는 별도로 처리 해야함 ) 
+ *
+ * @param {Object} func      호출 할 함수 Object 또는 함수명  
+ * @example
+        scwin.onpageload = function() {
+            //팝업창 X버튼 클릭 시 호출 할 함수 
+            $c.win.setPopCloseAction( scwin.popCloseAction );	
+        }; 
+        
+        scwin.popCloseAction = function(){
+            console.log("X버튼 클릭 시 처리 할 로직 start !!!");
+            $c.win.closePopup();	//팝업창 닫기 
+        };
+ */
+scwin.setPopCloseAction = function( func ){
+	
+	function _popCloseAction(e) {
+    	//팝업 x 버튼 클릭 시 셀렉트박스 테이블 강제로 닫기 처리 
+		if ( $('.w2table_sb.w2table').length > 0 ) {
+			$('.w2table_sb.w2table').css("display", "none");
+			$('.w2table_sb.w2table').css("visibility", "hidden");			
+		}
+    	
+        if (typeof func === "string") {
+        	func = window.WebSquare.util.getGlobalFunction($p.id + func); 
+        	if (func) func();
+        } else if (typeof func === "function") {
+        	func();
+        } else {
+        	//별도 함수 파라미터 없을 경우 (파라미터의 callback 함수 호출되도록 처리??) 
+        	
+        	//1안. 별도 function 없을 경우 지정된 callback 함수 호출 할수 있도록 처리 (파라미터에 closeCallback=true 추가) 
+        	//$p.getPopup($p.getPopupId()).getWindow().$p.getFrame()._dataObject.data.closeCallback = true;         	
+        	//$c.win.closePopup();
+        	
+        	//2안. 파라미터의 callback 함수를 찾아서 callback 함수를 직접호출 ( param 값은 false 로 리턴 ) 
+        	var callbackFnStr = $c.data.getParameter($p.getPopup($p.getPopupId()).getWindow().$p, "callbackFn");
+        	$c.win.closePopup(false, callbackFnStr);
+        }
+
+        //e.preventDefault();        
+        //e.returnValue = false;        
+        return false;
+	}
+	
+	//pc 
+	$('#'+$p.getPopupId()+"_close").click(function(e){
+		_popCloseAction(e);
+    });
+	
+	//mobile
+	$('#'+$p.getPopupId()+"_close").on("touchstart", function(e){
+		_popCloseAction(e);
+    });	
+};
+
 ]]></script>
 	</head>
 	<body ev:onpageload="scwin.onpageload"/>

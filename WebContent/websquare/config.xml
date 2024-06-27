@@ -9,7 +9,16 @@
 		<destRoot value="_wpack_"/>
 		<babelDestRoot value="_wpackbabel_"/>
 		<loadingMode value="auto"/>
-		<excludePrefix value="__"/>
+		<excludePrefix value="__"/>		<!-- $p 인자 자동생성 예외처리용 prefix (__로 시작하는 함수는 제외) -->
+		
+		<!-- 기존 공통함수 형식 start(SP5) 
+		<common name="com" value="true"/>
+		<commonPath>
+			<path src="/cm/js/commonGlobal.js"/>
+			<path src="/cm/js/commonScope.js"/>
+		</commonPath>
+		기존 공통함수 형식 end(SP5) -->
+		
 	</wpack>
 	<allValue value="all"/>
 	<docType value="standard"/>
@@ -36,7 +45,9 @@
 	<byteCheckEncoding value="euc-kr"/>
 	<executeScript value="script"/>
 	<initScript value="true"><![CDATA[
-        if (movePage.indexOf("/cm/main/login.xml") === -1) {
+		//movePage is not defined  
+        if ( typeof movePage != "undefined" && movePage.indexOf("/cm/main/login.xml") === -1 ) {
+        //if ( movePage.indexOf("/cm/main/login.xml") === -1 ) {
         	$c.hkey.init($p);
 	        $c.hkey.setShortKey($p, $p.main());
 	        $c.win.setLangCode($p, $c.win.getLanguage($p));
@@ -80,7 +91,14 @@
 		<module name="$c.hkey" src="/cm/gcc/hkey.xml"/>
 		<module name="$c.ext" src="/cm/gcc/ext.xml"/>
 	</projectCommon>
-	<engine/>	
+	
+	<!-- 외부 js import(초기 로딩) -->
+	<engine>
+<!--		<module src="/cm/js/commonGlobal.js"/>	 기존 공통함수 import(SP5) -->
+<!--		<module src="/cm/js/commonScope.js"/>	 기존 공통함수 import(SP5) -->			
+		<module src="/cm/extJs/jquery-ui.min.js"/>
+		<module src="/cm/extJs/jquery.ui.touch-punch.min.js"/>
+	</engine>	
 	<udc>
 		<requires>
 			<require as="udc_fileMultiUpload" src="/cm/udc/fileMultiUpload.xml" type="page"/>
@@ -121,7 +139,8 @@
 	<engineCache compression="true" enable="true" postfix="month"/>
 	<userAgentPattern XPathParser="Edge|Trident|MSIE"/>
 	<preserveWhiteSpace value="false"/>
-	<environment cache="nocache" mode="production" postfix="day"/>
+<!--	<environment cache="nocache" mode="production" postfix="day"/>-->
+	<environment cache="cache" mode="development" postfix="day"/>		<!-- cache 처리되도록 수정(LHC) -->
 	<script postfix="environment"/>
 	<emptyTag value="area,base,basefont,br,col,frame,hr,img,input,link,meta,param"/>
 	<engineLoadingMode android="0" chrome="0" ie="0" iphone="0" moz="0" opera="0" safari="0"/>

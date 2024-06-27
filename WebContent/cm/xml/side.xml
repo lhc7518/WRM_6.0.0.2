@@ -172,8 +172,10 @@ scwin.initDataCallback = function () {
 		}
 	} else {
 
-		$c.win.openMenu("메인", "/cm/xml/main.xml", "MAIN", null, option);
+		//$c.win.openMenu("메인", "/cm/xml/main.xml", "MAIN", null, option);
 		(async function openSideMenu (tabIndex) {
+            await $c.win.openMenu("메인", "/cm/xml/main.xml", "MAIN", null, option);
+
 			const menuCd = $w.getParameter("menuCd");
 
 			if ($c.util.isEmpty(menuCd) === false) {
@@ -186,7 +188,8 @@ scwin.initDataCallback = function () {
 					await $c.win.openMenu(menuInfo[0].MENU_NM, menuInfo[0].SRC_PATH, menuInfo[0].MENU_CD, null, option);
 				}
 			}
-		});
+		})();
+
 	}
 };
 

@@ -77,7 +77,14 @@ ALERT 형태의 팝업과 CONFIRM형태의 팝업에 대하여 처리하는 방�
  * 초기 스크립트 수행 함수 정의
  */
 scwin.onpageload = function () {
-
+    /*
+    //단축키 직접등록 test 
+    var shortKeyArray = [
+        { complexKey: "ctrl", lastKey: "q", func: "scwin.btn_alert1_onclick" },
+        { complexKey: "alt", lastKey: "q", func: "scwin.btn_alert2_onclick" }
+    ];
+    $c.hkey.setData(shortKeyArray);
+    */
 };
 
 /**
@@ -148,7 +155,8 @@ scwin.btn_confirm2_onclick = function () {
 		type: "browserPopup",
 		height: "270px"
 	};
-	$c.win.openPopup("/ui/SP/Parameter/confirmBrowser.xml", options, data);
+	//$c.win.openPopup("/ui/SP/Parameter/confirmBrowser.xml", options, data);
+    $c.win.openPopup("/ui/SP/Parameter/confirm.xml", options, data);
 };
 
 /**
