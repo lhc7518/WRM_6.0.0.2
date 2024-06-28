@@ -742,7 +742,7 @@ scwin.second_gen = function(pMenuCd) {
 
     //scwin.flagObj 의미 없음... (LHC)
     //if(!scwin.flagObj[1] && (active == false || active == undefined) && gen.getChildrenCount() <= 0) {
-    if ( (active == false || active == undefined) && gen.getChildrenCount() <= 0 ) {     
+    if ( (active == false || active == undefined) && gen.getChildrenCount() <= 0 ) {
 
         // 1depth menu code
         pMenuCd = this.getUserData('menuCode'); 
