@@ -28,11 +28,10 @@ scwin.onpageload = function() {
  * @method
  * @name init
  * @description 사용자 지정 단축키 기능을 초기화한다.
- * @param {Object} $p WFrame Scope 내 $p 객체
  * @hidden N
  * @exception 
  */ 
-scwin.init = function($p) {
+scwin.init = function() {
 	try {
 		const dataListCreationOpt = {
 			id : "dlt_shortcutList",

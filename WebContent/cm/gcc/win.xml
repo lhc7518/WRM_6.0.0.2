@@ -108,21 +108,9 @@ scwin.getScope = function(comObj) {
 	if(typeof(comObj) == 'undefined') {
 		const scopeApi = $p;
 		return $c.win.__getScope(scopeApi);
-	}
-
-	try {
-		if (typeof comObj === "string") {
-			const scopeObj = $c.util.getComponent(comObj);
-			if (scopeObj !== null) {
-				return scopeObj.getScopeWindow();
-			}
-		} else {
-			return comObj.getScopeWindow();
-		}
-	} catch (ex) {
-		console.error(ex);
-		return null;
-	}
+	} else {
+        return $c.win.__getScope(comObj);
+    }
 };
 
 /**
@@ -833,8 +821,6 @@ scwin._openPopup = function(url, opt, data) {
  * @method 
  * @name closePopup
  * @description 팝업창을 닫는다.
- * @param {Object} $p WFrame Scope $p 객체
- * @param {String} popId popup창 id로 값이 없을 경우 현재창의 아이디
  * @param {String} callbackParamStr 부모 창에 전달한 데이터
  * @param {String} callbackFnStr 콜백 함수 명
  * @hidden N
@@ -855,7 +841,6 @@ scwin.closePopup = function(callbackParam, callbackFnStr) {
  * @method 
  * @name _closePopup
  * @description 팝업창을 닫는다.
- * @param {Object} $p WFrame Scope $p 객체
  * @param {String} popId popup창 id로 값이 없을 경우 현재창의 아이디
  * @param {String} callbackParamStr 부모 창에 전달한 데이터
  * @param {String} callbackFnStr 콜백 함수 명
@@ -1071,7 +1056,7 @@ scwin.setProgramAuthority = function() {
  * @example
  */ 
 scwin.processCommonData = function() {
-	const scwinObj = $c.util.getObject($p, "scwin");
+	const scwinObj = $c.util.getObject("scwin");
 	
 	const commonDataWorkflow = {
 		"id" : "wkf_commonDataWorkflow",
@@ -1255,37 +1240,11 @@ scwin.reload = function() {
 const programId = $c.win.getProgramId();
  */ 
 scwin.getProgramId = function(scopeApi) { 	
-	let programId = "";
-
 	if(typeof(scopeApi) == "object") {
-		programId = scwin.__getProgramId(scopeApi);
-		return programId;
-	} 
-
-    //팝업에서는 팝업ID 를 programCd 로 설정 (LHC) 
-    var menuInfo = $c.data.getParameter("menuInfo");
-    if ( !$c.util.isEmpty(menuInfo) && !$c.util.isEmpty(menuInfo.programCd) ) {
-        return menuInfo.programCd;
-    }
-	
-	if ($c.util.isEmpty($p.getMetaValue("meta_screenId"))) {
-		// 웹스퀘어 파일명을 프로그램 아이디와 동일하게 작성한 경우에만 정상 동작한다.
-		let src = ""; 
-	
-		if (!$c.util.isEmpty($p.getFrame())) {
-			src = $p.getFrame().getSrc();
-		} else {
-			src = $p.getParameter("w2xPath");
-		}
-		
-		if (src.indexOf("/ui/") >= 0) {
-			programId = src.substring(src.lastIndexOf("/") + 1, src.lastIndexOf("."));
-		}
+		return scwin.__getProgramId(scopeApi);
 	} else {
-		programId = $p.getMetaValue("meta_screenId");
-	}
-	
-	return programId;
+        return scwin.__getProgramId($p);
+    }
 };
 
 /**
@@ -1324,7 +1283,7 @@ scwin.__getProgramId = function(scopeApi) {
 	}
 	
 	return programId;
-}
+};
 
 /**
  * @method 
@@ -1719,7 +1678,7 @@ scwin.setLangCode = function(langCode) {
  * @example
 $c.win.getLangCode();
  */ 
-scwin.getLangCode = function(langCode) {
+scwin.getLangCode = function() {
 	return WebSquare.cookie.getCookie("system_language");
 };
 

@@ -58,7 +58,7 @@ scwin.onpageload = function() {
  * @hidden N
  * @exception 
  */ 
-scwin.serialize = function($p, object, replacer, space) {
+scwin.serialize = function(object, replacer, space) {
 	if (typeof object === 'string') {
 		return object;
 	} else if ($c.util.isJSON(object)) {

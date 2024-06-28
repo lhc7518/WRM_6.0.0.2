@@ -244,14 +244,12 @@ scwin.loadMessage = function() {
  * @method
  * @name initChangeCheckedDc
  * @description 변경 검사 대상 Data Collection을 저장할 객체를 생성한다.
- * @param {Object} $p WFrame Scope $p 객체
  * @hidden N
  * @exception 
- * @example $c.data.initChangeCheckedDc = function($p);
+ * @example $c.data.initChangeCheckedDc();
  */ 
-scwin.initChangeCheckedDc = function($p) {
-	const scwinObj = $c.util.getObject($p, "scwin");
-	
+scwin.initChangeCheckedDc = function() {
+    const scwinObj = $c.util.getObject("scwin");
 	if (!$c.util.isEmpty($c.data.getParameter("menuInfo"))) {
 		scwinObj._changeCheckDcList = [];
 	}
@@ -268,7 +266,7 @@ scwin.initChangeCheckedDc = function($p) {
  * @example $c.win.setChangeCheckedDc([dma_sample, dlt_grdAllData]);
  */ 
 scwin.setChangeCheckedDc = function(dcObjArr) {
-	const mainFrameScwin = $c.data.getChangeCheckedMainFrame($p);
+	const mainFrameScwin = $c.data.getChangeCheckedMainFrame();
 	if (!$c.util.isEmpty(mainFrameScwin) && !$c.util.isEmpty(mainFrameScwin._changeCheckDcList)) {
 		if ($c.util.isArray(dcObjArr)) {
 			for (let id in dcObjArr) {
@@ -291,20 +289,10 @@ scwin.setChangeCheckedDc = function(dcObjArr) {
  * @example ${example}
  */ 
 scwin.getChangeCheckedMainFrame = function(scopeApi) {
-	if (typeof(scopeApi) == 'object') {
-		return scwin.__getChangeCheckedMainFrame(scopeApi);
-	}
-
-	const scwinObj = $c.util.getObject($p, "scwin");
-
-	if (typeof scwinObj._changeCheckDcList !== "undefined") {
-		return scwinObj;
-	} else if ($p.main().$p.getFrameId() !== $p.getFrameId()) {
-		scopeApi = $p.parent().$p;
-		return $c.data.getChangeCheckedMainFrame(scopeApi);
-	} else {
-		return null; 
-	}
+	if (typeof(scopeApi) != 'object') {
+        scopeApi = $p;
+    }
+    return scwin.__getChangeCheckedMainFrame(scopeApi);
 };
 
 /**
@@ -319,7 +307,7 @@ scwin.getChangeCheckedMainFrame = function(scopeApi) {
  */
 scwin.__getChangeCheckedMainFrame = function (scopeApi) {
 	let $p = scopeApi;
-	const scwinObj = $c.util.getObject($p, "scwin"); 
+    const scwinObj = $c.util.getObject("scwin"); 
 
 	if (typeof scwinObj._changeCheckDcList !== "undefined") {
 		return scwinObj;
@@ -530,22 +518,41 @@ scwin.executeCommonCode = function() {
  * @name getParameter
  * @description 파라미터를 읽어 온다.
  * @param {String} paramKey 파라미터 키
+ * @param {Object} scopeObj 특정 window의 $p 값
  * @returns {Object} parameterValue 파라미터 값
  * @hidden N
  * @exception 
  * @example const code = $c.data.getParameter("code");  // 특정 파라미터 값을 얻어오기
 const param = $c.data.getParameter();	   // 전체 파라미터 값을 얻어오기
  */ 
-scwin.getParameter = function(paramKey, scopeObj, scopeApi) {
-	if (typeof (paramKey) != "string" && paramKey != undefined) {
-		scwin.__getParameter(paramKey, scopeObj, scopeApi)
-		return;
-	}
+scwin.getParameter = function(paramKey, scopeObj) {
+    let scopeApi;
+    let paramApi;
+	if ( typeof (paramKey) != "string" && paramKey != undefined ) {
+        scopeApi = paramKey;
+        paramApi = scopeObj;
+	} else if (typeof (paramKey) == "string" && typeof (scopeObj) != "string" && scopeObj != undefined ){
+        scopeApi = scopeObj;
+        paramApi = paramKey;
+	} else {
+        scopeApi = $p;
+        paramApi = paramKey;
+    }
+	return scwin.__getParameter(scopeApi, paramApi);
+};
 
-	if (!$c.util.isEmpty(scopeObj)) {
-		$p = scopeObj; 
-	}
-	
+/**
+ * @method
+ * @name __getParameter
+ * @description 파라미터를 읽어 온다.
+ * @param {Object} scopeApi 특정 window의 $p 값
+ * @param {String} paramKey 파라미터 키
+ * @returns {Object} parameterValue 파라미터 값
+ * @hidden Y
+ * @exception 
+ */ 
+scwin.__getParameter = function(scopeApi, paramKey) {
+	const $p = scopeApi;	
 	let paramData = "";
 	try {
 		paramData = $p.getParameter("paramData");
@@ -590,67 +597,6 @@ scwin.getParameter = function(paramKey, scopeObj, scopeApi) {
 		}
 	}
 };
-
-/**
- * @method
- * @name __getParameter
- * @description 파라미터를 읽어 온다.
- * @param {String} scopeApi 특정 window의 $p 값값
- * @param {String} paramKey 파라미터 키
- * @param {String} scopeObj scope Object
- * @returns {Object} parameterValue 파라미터 값
- * @hidden Y
- * @exception 
- */ 
-scwin.__getParameter = function(scopeApi, paramKey, scopeObj) {
-	if (!$c.util.isEmpty(scopeObj)) {
-		$p = scopeApi; 
-	}
-	
-	let paramData = "";
-	try {
-		paramData = $p.getParameter("paramData");
-		if (($c.util.isEmpty(paramData) === false) && $c.util.isJSON(paramData)) {
-			if ($c.util.isEmpty(paramKey) === false) {
-				return paramData[paramKey];
-			} else {
-				return paramData;
-			}
-		} else {
-			paramData = getUrlParameter("paramData");
-			if ($c.util.isEmpty(paramData) === false) {
-				paramData = $c.util.getJSON(WebSquare.text.BASE64Decode(paramData));
-				if ($c.util.isEmpty(paramKey) === false) {
-					return paramData[paramKey];
-				} else {
-					return paramData;
-				}
-			}
-		}
-	} catch (ex) {
-		console.error(ex);
-		return "";
-	}
-	
-	return paramData;
-	
-	function getUrlParameter(paramKey) {
-		let param = [];
-		const paramArray = location.search.split(/[\&\?\#]/);
-		for (let i = 0; i < paramArray.length; i++) {
-			if ($c.util.isEmpty(paramArray[i]) === false) {
-				const valueIdx = paramArray[i].indexOf("=");
-				if (valueIdx > 0) {
-					const key = paramArray[i].substring(0, valueIdx);
-					const value = paramArray[i].substring(valueIdx + 1);
-					if (key === paramKey) {
-						return value;
-					}
-				}
-			}
-		}
-	}
-}
 
 /**
  * @method
@@ -2439,7 +2385,7 @@ scwin.getUserData = function(comObj, key) {
  * @description 공휴일 데이터를 저장할 dlt_holiday DataList 객체를 생성하고 config.js 파일에 dlt_holiday DataList 객체 정보를 세팅한다.
  * @hidden N
  * @exception 
- * @example $c.data.createHolidayDataList($p);
+ * @example $c.data.createHolidayDataList();
  */ 
 scwin.createHolidayDataList = function() {
 	const dcOption = {
@@ -2466,7 +2412,7 @@ scwin.createHolidayDataList = function() {
  * @description 공휴일 데이터를 조회해서 $p.top().dlt_holiday 객체에 저장한다.
  * @hidden N
  * @exception 
- * @example $c.data.loadHoliday($p);
+ * @example $c.data.loadHoliday();
  */ 
 scwin.loadHoliday = function() {
 	const getHolidayOption = {
