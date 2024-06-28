@@ -713,7 +713,7 @@ scwin.init_gen = function() {
 /**
  * @method
  * @name second_gen
- * @description 2depth 메뉴 버튼을 눌렀을 때 3depth 메뉴를 표시한다.
+ * @description 1depth 메뉴 버튼을 눌렀을 때 2depth 메뉴를 표시한다.
  * 1Depth의 메뉴가 화면이 있는 경우 해당 화면을 호출한다.
  * @hidden N
  * @exception 
@@ -734,12 +734,15 @@ scwin.second_gen = function(pMenuCd) {
     if(first[0].SRC_PATH != '' && first[0].SRC_PATH != undefined) {
         scwin.menubtn_onclick(first);
         this.getGenerator().getChildren()[idx].addClass('on');
+        return;
     }
 
     // 활성창 
     active = scwin.activeWindow[this.getUserData('menuCode')];
 
-    if(!scwin.flagObj[1] && (active == false || active == undefined) && gen.getChildrenCount() <= 0) {
+    //scwin.flagObj 의미 없음... (LHC)
+    //if(!scwin.flagObj[1] && (active == false || active == undefined) && gen.getChildrenCount() <= 0) {
+    if ( (active == false || active == undefined) && gen.getChildrenCount() <= 0 ) {    
 
         // 1depth menu code
         pMenuCd = this.getUserData('menuCode');
@@ -751,7 +754,7 @@ scwin.second_gen = function(pMenuCd) {
             let child = gen.getChild(i,'btn_2depth');
             child.setValue(second[i].MENU_NM);
             child.setUserData('menuCode', second[i].MENU_CD);
-        };
+        }
 
         this.getGenerator().getChildren()[idx].addClass('on');
         scwin.flagObj[1] = true;
@@ -784,6 +787,7 @@ scwin.third_gen = function() {
     // 2Depth의 화면이 있는 경우 실행
     if(second[0].SRC_PATH != '' && second[0].SRC_PATH != undefined) {
         scwin.menubtn_onclick(second);
+        return;
     }
 
     // idx search
@@ -792,7 +796,8 @@ scwin.third_gen = function() {
     // 3depth Generator
 	const gen = this.getGenerator().getChildren()[idx].getChildren()[1]
 
-    if(!scwin.flagObj[2] && gen.getChildrenCount() <= 0 ) {
+    //if(!scwin.flagObj[2] && gen.getChildrenCount() <= 0 ) {
+    if ( gen.getChildrenCount() <= 0 ) { 
         // 2depth Menu Code
         const pMenuCd = this.getUserData('menuCode');
         const third = dlt_menu.getMatchedJSON('PARENT_MENU_CD', pMenuCd);
@@ -814,7 +819,7 @@ scwin.third_gen = function() {
         scwin.flagObj[2] = false;
     }
 
-}
+};
 
 
 /**
