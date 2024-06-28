@@ -745,7 +745,7 @@ scwin.second_gen = function(pMenuCd) {
     if ( (active == false || active == undefined) && gen.getChildrenCount() <= 0 ) {    
 
         // 1depth menu code
-        pMenuCd = this.getUserData('menuCode');
+        pMenuCd = this.getUserData('menuCode'); 
 
         const second = dlt_menu.getMatchedJSON('PARENT_MENU_CD', pMenuCd);
 
